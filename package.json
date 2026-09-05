@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "icons": "node --no-warnings=MODULE_TYPELESS_PACKAGE_JSON scripts/make-icons.ts",
     "start": "next start",
     "lint": "eslint"
   },

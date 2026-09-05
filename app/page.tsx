@@ -13,7 +13,7 @@ import {
 } from '@/components/settings/settings-panel';
 import { StatusRail } from '@/components/status-rail';
 import { useChat } from '@/lib/use-chat';
-import { useMediaQuery } from '@/lib/use-media';
+import { useKeyboardInset, useMediaQuery } from '@/lib/use-media';
 import { cn, hostOf } from '@/lib/utils';
 import { useConnection } from '@/lib/use-connection';
 
@@ -35,6 +35,10 @@ export default function Playground() {
   const dockable = useMediaQuery(PANEL_DOCK_QUERY);
   const makeRoom = settingsOpen && dockable;
 
+  // What the keyboard is covering. 0 on every browser that resizes the
+  // page for it, and on every desktop — see app/layout.tsx.
+  const keyboard = useKeyboardInset();
+
   // Follow the stream, but stop following the moment the reader
   // scrolls up to re-read something.
   const onScroll = useCallback(() => {
@@ -55,10 +59,12 @@ export default function Playground() {
     el.scrollTo({ top: el.scrollHeight, behavior: 'auto' });
   }, []);
 
-  // Giving up the width narrows the thread, so every message rewraps a
-  // line or two taller. Pin at both ends of that: once when the padding
-  // starts moving, once when it lands.
-  useEffect(pinToBottom, [makeRoom, pinToBottom]);
+  // Both of these leave the thread holding an offset that no longer
+  // points at the bottom: giving up the width rewraps every message a
+  // line or two taller, and the keyboard takes height off the foot of
+  // the scroller. Pinning here catches the near end of the padding
+  // transition; onTransitionEnd below catches the far end.
+  useEffect(pinToBottom, [makeRoom, keyboard, pinToBottom]);
 
   const openSettings = useCallback(() => {
     // Opening Settings is the first moment the model list is needed.
@@ -73,7 +79,13 @@ export default function Playground() {
       onTransitionEnd={(e) => {
         if (e.target === e.currentTarget) pinToBottom();
       }}
-      style={{ paddingRight: makeRoom ? PANEL_ROOM : 0 }}
+      style={{
+        paddingRight: makeRoom ? PANEL_ROOM : 0,
+        // Height rather than padding-bottom, which is on a 440ms
+        // transition below for the docking card. The keyboard is
+        // already sliding up; it cannot wait out a second animation.
+        height: keyboard ? `calc(100dvh - ${keyboard}px)` : undefined,
+      }}
       className={cn(
         'relative flex h-dvh flex-col overflow-hidden',
         // Everything inside re-centres in what is left; the scene is
@@ -100,7 +112,9 @@ export default function Playground() {
       >
         <div
           className={cn(
-            'mx-auto flex min-h-full w-full max-w-[860px] flex-col justify-end px-4 sm:px-7',
+            'mx-auto flex min-h-full w-full max-w-[860px] flex-col justify-end',
+            'pl-[max(1rem,env(safe-area-inset-left))] sm:pl-[max(1.75rem,env(safe-area-inset-left))]',
+            'pr-[max(1rem,env(safe-area-inset-right))] sm:pr-[max(1.75rem,env(safe-area-inset-right))]',
             hasThread && 'pt-6 pb-2',
           )}
         >
@@ -125,7 +139,21 @@ export default function Playground() {
         one piece of motion here nobody asked for by clicking, and it
         exists to show where the composer went.
       */}
-      <div className="shrink-0 px-4 pb-5 sm:px-7 sm:pb-7">
+      {/*
+        The safe-area insets are 0 in a browser tab and the padding below
+        is the padding it always was. Installed, viewport-fit=cover
+        (app/layout.tsx) hands the page the strips the chrome used to
+        occupy, and the home indicator lives in the bottom one — so the
+        composer clears it here rather than sitting under it.
+      */}
+      <div
+        className={cn(
+          'shrink-0',
+          'pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-[max(1.75rem,env(safe-area-inset-bottom))]',
+          'pl-[max(1rem,env(safe-area-inset-left))] sm:pl-[max(1.75rem,env(safe-area-inset-left))]',
+          'pr-[max(1rem,env(safe-area-inset-right))] sm:pr-[max(1.75rem,env(safe-area-inset-right))]',
+        )}
+      >
         <div className="mx-auto w-full max-w-[688px]">
           <AnimatePresence initial={false}>
             {hasThread ? null : (

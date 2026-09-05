@@ -16,7 +16,7 @@ import { ProviderIcon } from '@/components/ui/provider-icon';
 import { CurlImport } from '@/components/settings/curl-import';
 import { ModelPicker } from '@/components/settings/model-picker';
 import type { ConnectionController } from '@/lib/use-connection';
-import { useMediaQuery } from '@/lib/use-media';
+import { useKeyboardInset, useMediaQuery } from '@/lib/use-media';
 import { cn, hostOf } from '@/lib/utils';
 
 const PANEL_EASE = [0.22, 1, 0.36, 1] as const;
@@ -86,6 +86,10 @@ export function SettingsPanel({
     controller;
   const [showKey, setShowKey] = useState(false);
   const docked = useMediaQuery(PANEL_DOCK_QUERY);
+  // The card is fixed, so on Safari it stays put over the keyboard and
+  // takes the API key field down with it. Same measurement the shell
+  // uses; 0 wherever the browser resizes the page instead.
+  const keyboard = useKeyboardInset();
 
   useEffect(() => {
     if (!open) return;
@@ -129,7 +133,7 @@ export function SettingsPanel({
             style={{
               top: PANEL_GAP,
               right: PANEL_GAP,
-              bottom: PANEL_GAP,
+              bottom: PANEL_GAP + keyboard,
               width: `min(100vw - ${PANEL_GAP * 2}px, ${PANEL_WIDTH}px)`,
             }}
             className={cn(
