@@ -1,26 +1,69 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ------------------------------------------------------------------
+   Huming — tokens
+   The palette is sampled from the scene master,
+   assets/upscaled-playground-scenes.mp4, which is gitignored — the
+   encodes cut down from it are in public/scene.
+   Measured: darkest #0a202a, deep blue #0c2e47, dominant indigo
+   #5b69dd (hue 225), violet #b57fd8, hot magenta #fa84ba.
+   The three accents are three points along that gradient, in order,
+   so cool -> warm in the UI matches cool -> warm in the scene.
+------------------------------------------------------------------ */
+@theme {
+  --color-abyss: #01050a;
+  --color-ink: #061018;
+  --color-slate-deep: #0c2e47;
+
+  --color-vellum: #f3eff7;
+  --color-mist: #b9b3c9;
+  --color-ash: #7a7690;
+
+  --color-tide: #5b69dd;
+  --color-lilac: #c58bff;
+  --color-flare: #ff7fb4;
+
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Page never scrolls. Panes scroll internally. */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-abyss);
+  color: var(--color-vellum);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Highlights are neutral: white at low alpha, never a tinted wash. */
+::selection {
+  background: rgba(255, 255, 255, 0.22);
+  color: var(--color-vellum);
+}
+
+/*
+   In @layer base, not unlayered, and the layer is the point: unlayered
+   CSS outranks everything Tailwind emits no matter the specificity, so
+   written out here this rule beat every focus-visible:outline-none in
+   the app. It put a white ring around the composer and around each
+   field in the Settings card on click — those all show focus by
+   lighting their own border instead. Layered, they win and the ring
+   stays where nothing else says otherwise.
+*/
+@layer base {
+  :focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.62);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
 }

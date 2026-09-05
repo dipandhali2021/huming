@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+.claude
 
 # next.js
 /.next/
@@ -39,3 +40,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# scene master
+# The two encodes the app actually plays live in public/scene and are
+# committed; this is the 17MB clip they were cut down from. Nothing at
+# runtime loads it, and git would keep the blob forever.
+/assets
